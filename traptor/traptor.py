@@ -905,7 +905,7 @@ class Traptor(object):
                 if t[0] == self.traptor_type and t[1] == str(self.traptor_id):
                     # Log the action and restart
                     self.restart_flag = True
-                    self.logger.debug("Redis PubSub message found. Setting restart flag to True.")
+                    self.logger.info("Redis PubSub message found. Setting restart flag to True.")
                     dd_monitoring.increment('restart_message_received')
 
     @retry(wait=wait_exponential(multiplier=1, max=10),
