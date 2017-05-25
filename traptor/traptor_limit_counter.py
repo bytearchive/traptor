@@ -2,7 +2,7 @@ from scutils.stats_collector import RollingTimeWindow
 
 
 class TraptorLimitCounter(RollingTimeWindow, object):
-    def __init__(self, key='rolling_time_window_counter', cycle_time=5, window=60):
+    def __init__(self, key='rolling_time_window_counter', cycle_time=1, window=60):
         super(TraptorLimitCounter, self).__init__(key, cycle_time, window)
 
     def increment(self, limit_count):

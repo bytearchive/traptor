@@ -261,7 +261,7 @@ class Traptor(object):
 
             Creates ``self.birdy_stream``.
         """
-
+        self.logger.info("Birdy Stream Creation: [Creating]")
         if self.traptor_type == 'follow':
             # Try to set up a twitter stream using twitter id list
             try:
@@ -307,6 +307,8 @@ class Traptor(object):
                                     tags=['error_type:not_implemented_error'])
             sys.exit(3)
 
+            self.logger.info("Birdy Stream Creation: [Created]")
+
     def _make_twitter_rules(self, rules):
         """ Convert the rules from redis into a format compatible with the
             Twitter API.
@@ -332,7 +334,7 @@ class Traptor(object):
         stats_collector = StatsCollector.get_rolling_time_window(redis_conn=self.redis_conn,
                                                                  key=stats_key,
                                                                  window=collection_window,
-                                                                 cycle_time=0.1)
+                                                                 cycle_time=1)
 
         return stats_collector
 
@@ -342,15 +344,19 @@ class Traptor(object):
 
         :return: dict: rule_counters
         """
-        self.logger.info("Making the rule counters")
+        self.logger.info("Rule Counters Creation: [Creating]")
 
         rule_counters = dict()
 
         for rule in self.redis_rules:
+
+            self.logger.info("Rule Counters Creation: [Creating -->{}]".format(json.dumps(rule)))
             rule_id = rule['rule_id']
             rule_counters[rule_id] = self._create_rule_counter(rule_id=rule_id)
 
         self.rule_counters = rule_counters
+
+        self.logger.info("Rule Counters Creation: [Finished]")
 
     @retry(wait=wait_exponential(multiplier=1, max=10),
            stop=stop_after_attempt(3),
@@ -412,11 +418,16 @@ class Traptor(object):
         """
         Make a limit message counter to track the values of incoming limit messages.
         """
+
+        self.logger.info("Limit Counter Creation: [Creating]")
         limit_counter_key = "limit:{}:{}".format(self.traptor_type, self.traptor_id)
         collection_window = int(os.getenv('LIMIT_COUNT_COLLECTION_WINDOW', 900))
-
         self.limit_counter = TraptorLimitCounter(key=limit_counter_key, window=collection_window)
+        self.logger.info("Limit Counter Creation: [Created]")
+
+        self.logger.info("Limit Counter Creation: [Setting up]")
         self.limit_counter.setup(redis_conn=self.redis_conn)
+        self.logger.info("Limit Counter Creation: [Set up]")
 
     @retry(wait=wait_exponential(multiplier=1, max=10),
            stop=stop_after_attempt(3),
@@ -1082,11 +1093,11 @@ class Traptor(object):
             else:
                 self.logger.info("Twitter Rules {}".format(rules_str))
 
-            # Make the rule and limit message counters
-            if self.traptor_type != 'locations':
-                if self.enable_stats_collection == 'true':
-                    self._make_rule_counters()
-                self._make_limit_message_counter()
+            # # Make the rule and limit message counters
+            # if self.traptor_type != 'locations':
+            #     if self.enable_stats_collection == 'true':
+            #         self._make_rule_counters()
+            #     self._make_limit_message_counter()
 
             if not self.test:
                 self._create_birdy_stream()
