@@ -1064,6 +1064,8 @@ class Traptor(object):
 
         self.logger.debug("Heartbeat started. Now to check for the rules")
 
+        MAX_RULES_STR_SIZE = 32786
+
         # Do all the things
         while True:
             self._delete_rule_counters()
@@ -1071,7 +1073,14 @@ class Traptor(object):
 
             # Concatenate all of the rule['value'] fields
             self.twitter_rules = self._make_twitter_rules(self.redis_rules)
-            self.logger.info("Twitter rules: {}".format(self.twitter_rules.encode('utf-8')))
+
+
+            rules_str = self.twitter_rules.encode('utf-8')
+
+            if len(rules_str) >= MAX_RULES_STR_SIZE:
+                self.logger.info("Twitter rules are too large to print...")
+            else:
+                self.logger.info(rules_str)
 
             # Make the rule and limit message counters
             if self.traptor_type != 'locations':
