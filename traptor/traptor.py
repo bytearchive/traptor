@@ -1080,7 +1080,7 @@ class Traptor(object):
             if len(rules_str) >= MAX_RULES_STR_SIZE:
                 self.logger.info("Twitter rules are too large to print...")
             else:
-                self.logger.info(rules_str)
+                self.logger.info("Twitter Rules {}".format(rules_str))
 
             # Make the rule and limit message counters
             if self.traptor_type != 'locations':
