@@ -331,7 +331,8 @@ class Traptor(object):
         stats_key = 'stats:{}:{}:{}'.format(self.traptor_type, self.traptor_id, rule_id)
         stats_collector = StatsCollector.get_rolling_time_window(redis_conn=self.redis_conn,
                                                                  key=stats_key,
-                                                                 window=collection_window)
+                                                                 window=collection_window,
+                                                                 cycle_time=0.1)
 
         return stats_collector
 
@@ -384,11 +385,18 @@ class Traptor(object):
         """
         Stop and then delete the existing rule counters.
         """
+        self.logger.info("Attempting to delete rule counters")
         if len(self.rule_counters) > 0:
+            self.logger.debug("Found: {} rule counters --> {}".format(len(self.rule_counters), self.rule_counters))
             for counter in self.rule_counters:
                 try:
+                    self.logger.debug("Rule counter: {} [Stopping]".format(counter))
                     self.rule_counters[counter].stop()
+                    self.logger.debug("Rule counter: {} [Stopped]".format(counter))
+
+                    self.logger.debug("Rule counter: {} [Deleting]".format(counter))
                     self.rule_counters[counter].delete_key()
+                    self.logger.debug("Rule counter: {} [Deleted]".format(counter))
                 except:
                     self.logger.error("Caught exception while stopping and deleting a rule counter", extra={
                         'error_type': 'RedisConnectionError',
@@ -397,6 +405,8 @@ class Traptor(object):
                     dd_monitoring.increment('redis_error',
                                             tags=['error_type:connection_error'])
             self.logger.info("Rule counters deleted successfully.")
+        else:
+            self.logger.info("No rule counters to delete")
 
     def _make_limit_message_counter(self):
         """
